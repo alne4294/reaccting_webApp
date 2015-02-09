@@ -105,17 +105,28 @@ function graphResults(dataset, numDataPoints){
 					  .orient("bottom")
 					  .tickFormat(d3.time.format('%b %d %Y %I:%M'))
 					  .ticks(5)
-					  // .ticks(d3.time.months, 5);
+
 	//Define Y axis
 	var yAxis = d3.svg.axis()
 					  .scale(yScale)
 					  .orient("left")
 					  .ticks(5);
+
+	var tip = d3.tip()
+	  .attr('class', 'd3-tip')
+	  .offset([-10, 0])
+	  .html(function(d) {
+	    return "<strong>Date:</strong> <span style='color:red'>" + d[0] + "</span>";
+	  })
+
 	//Create SVG element
 	var svg = d3.select("body")
 				.append("svg")
 				.attr("width", w)
 				.attr("height", h);
+
+	svg.call(tip);
+
 	//Create circles
 	svg.selectAll("circle")
 	   .data(dataset)
@@ -127,7 +138,9 @@ function graphResults(dataset, numDataPoints){
 	   .attr("cy", function(d) {
 	   		return yScale(d[1]);
 	   })
-	   .attr("r", 2);
+	   .attr("r", 2)
+	   .on('mouseover', tip.show)
+       .on('mouseout', tip.hide);
 
 	//Create X axis
 	svg.append("g")
