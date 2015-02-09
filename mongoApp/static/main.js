@@ -56,11 +56,9 @@ function createFindGraph() {
 			// console.log(iso_date);
 
 			var temp = doc.temperature;
+			var light = doc.light;
 			
-			var newNumber1 = iso_date;
-			var newNumber2 = temp;
-			
-			dataset.push([newNumber1, newNumber2]);
+			dataset.push([iso_date, temp, light]);
 
 		}
 
@@ -78,30 +76,36 @@ function graphResults(dataset, numDataPoints){
 	// console.log(numDataPoints)
 
 	//Width and height
-	var w = 600;
-	var h = 400;
-	var padding = 30;
+	var w = 800;
+	var h = 550;
+	var padding = 50;
+	// var timeFormat = d3.time.format("%I:%M %p %a %Y");
 	
-	//Create scale functions
-	lowerX = d3.min(dataset, function(d) { return d[0]; })
+	//Create Xscale function
+	var lowerX = d3.min(dataset, function(d) { return d[0]; })
+	var upperX = d3.max(dataset, function(d) { return d[0]; })
 	// console.log(lowerX);
-	upperX = d3.max(dataset, function(d) { return d[0]; })
 	// console.log(upperX);
-	var xScale = d3.scale.linear()
+	var xScale = d3.time.scale()
 						 .domain([lowerX, upperX])
 						 .range([padding, w - padding * 2]);
-	lowerY = d3.min(dataset, function(d) { return d[1]; })
-	console.log(lowerY);
-	upperY = d3.max(dataset, function(d) { return d[1]; })
-	console.log(upperY);
+
+	//Create Yscale function
+	var lowerY = d3.min(dataset, function(d) { return d[1]; })
+	var upperY = d3.max(dataset, function(d) { return d[1]; })
+	// console.log(lowerY);
+	// console.log(upperY);
 	var yScale = d3.scale.linear()
 						 .domain([lowerY, upperY])
 						 .range([h - padding, padding]);
+
 	//Define X axis
 	var xAxis = d3.svg.axis()
 					  .scale(xScale)
 					  .orient("bottom")
-					  .ticks(5);
+					  .tickFormat(d3.time.format('%b %d %Y %I:%M'))
+					  .ticks(5)
+					  // .ticks(d3.time.months, 5);
 	//Define Y axis
 	var yAxis = d3.svg.axis()
 					  .scale(yScale)
@@ -124,12 +128,21 @@ function graphResults(dataset, numDataPoints){
 	   		return yScale(d[1]);
 	   })
 	   .attr("r", 2);
-	
+
 	//Create X axis
 	svg.append("g")
 		.attr("class", "x axis")
 		.attr("transform", "translate(0," + (h - padding) + ")")
 		.call(xAxis);
+
+	// Add the text label for the x axis
+    svg.append("text")
+    	.attr("class", "x labels")
+        .attr("y", h - (padding / 3))
+        .attr("x", (w / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Date");
 	
 	//Create Y axis
 	svg.append("g")
@@ -137,36 +150,52 @@ function graphResults(dataset, numDataPoints){
 		.attr("transform", "translate(" + padding + ",0)")
 		.call(yAxis);
 
+	// Add the text label for the Y axis
+    svg.append("text")
+    	.attr("class", "y labels")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 + (padding / 5))
+        .attr("x",0 - (h / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Temp (C)");
+
 	//On click, update with new data			
-	d3.select(".find")
-		.on("click", function() {
+	// d3.select(".find")
+	// 	.on("click", function() {
 			
-			//Update scale domains
-			xScale.domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })]);
-			yScale.domain([0, d3.max(dataset, function(d) { return d[1]; })]);
-			//Update all circles
-			svg.selectAll("circle")
-			   .data(dataset)
-			   .transition()
-			   .duration(1000)		
-			   .attr("cx", function(d) {
-			   		return xScale(d[0]);
-			   })
-			   .attr("cy", function(d) {
-			   		return yScale(d[1]);
-			   });
-			//Update X axis
-			svg.select(".x.axis")
-		    	.transition()
-		    	.duration(1000)
-				.call(xAxis);
+	// 		//Update Yscale domains
+	// 		var lowerY = d3.min(dataset, function(d) { return d[2]; })
+	// 		var upperY = d3.max(dataset, function(d) { return d[2]; })
+	// 		console.log(lowerY);
+	// 		console.log(upperY);
+	// 		var yScale = d3.scale.linear()
+	// 							 .domain([lowerY, upperY])
+	// 							 .range([h - padding, padding]);
+
+	// 		//Update all circles
+	// 		svg.selectAll("circle")
+	// 		   .data(dataset)
+	// 		   .transition()
+	// 		   .duration(1000)		
+	// 		   .attr("cx", function(d) {
+	// 		   		return xScale(d[0]);
+	// 		   })
+	// 		   .attr("cy", function(d) {
+	// 		   		return yScale(d[2]);
+	// 		   });
+	// 		//Update X axis
+	// 		svg.select(".x.axis")
+	// 	    	.transition()
+	// 	    	.duration(1000)
+	// 			.call(xAxis);
 			
-			//Update Y axis
-			svg.select(".y.axis")
-		    	.transition()
-		    	.duration(1000)
-				.call(yAxis);
-		});
+	// 		//Update Y axis
+	// 		svg.select(".y.axis")
+	// 	    	.transition()
+	// 	    	.duration(1000)
+	// 			.call(yAxis);
+	// 	});
 
 	// var width = 960; // chart width
 	// var height = 700; // chart height
