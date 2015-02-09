@@ -10,24 +10,17 @@ $(function() {
 //=======================================================
 function findOne(){
 
-	var temp = 0;
-	var light = 0;
-	var iso_date = 0;
-	var humidity = 0;
-	var device = "";
-	var dt = 0;
-
 	d3.json("/api/1.0/mongoWebApp/findOne", function(docs) {
 	  
 		data = jQuery.parseJSON(docs.data);
 
-		temp = data.temperature;
-		light = data.light;
-		isoDate = data.iso_dt;
-		iso_date = (isoDate.$date)/1000000000;
-		humidity = data.humidity;
-		device = data.device;
-		dt = data.dt;
+		var temp = data.temperature;
+		var light = data.light;
+		var isoDate = data.iso_dt;
+		var iso_date = new Date(isoDate.$date);
+		var humidity = data.humidity;
+		var device = data.device;
+		var dt = data.dt;
 	  
 	  	console.log("findOne() Results: ---------------");
 		console.log(temp);
@@ -44,55 +37,65 @@ function findOne(){
 //=======================================================
 function createFindGraph() {
 
-	var temp = 0;
-	var light = 0;
-	var iso_date = 0;
-	var humidity = 0;
-	var device = "";
-	var dt = 0;
+	var dataset = [];
+	var numDataPoints = 0;	
 
 	d3.json("/api/1.0/mongoWebApp/find", function(docs) {
 	  
-	  dataArray = docs.data;
-	  // for each (data in dataArray){
-	  // 	doc = jQuery.parseJSON(data)
-	  // }
-	  console.log(typeof(doc));
-	  // console.log(data);
-	  // console.log(data.temperature);
-	  temp = data.temperature;
-	  light = data.light;
-	  isoDate = data.iso_dt;
-	  iso_date = (isoDate.$date)/1000000000;
-	  humidity = data.humidity;
-	  device = data.device;
-	  dt = data.dt;
-	  // console.log(isoDate);
-	  // console.log(isoDate.$date);
+		dataArray = docs.data;
+		numDataPoints = dataArray.length;
+
+		for (var i = 0; i < numDataPoints; i++){
+			doc = jQuery.parseJSON(dataArray[i]);
+			// console.log(doc)
+
+			var isoDate = doc.iso_dt;
+			// console.log(isoDate.$date);
+			var iso_date = new Date(isoDate.$date);
+			// console.log("Date object: " );
+			// console.log(iso_date);
+
+			var temp = doc.temperature;
+			
+			var newNumber1 = iso_date;
+			var newNumber2 = temp;
+			
+			dataset.push([newNumber1, newNumber2]);
+
+		}
+
+		//Call here (within callback function) because 
+		//it's dependent on the asynchronous call
+		graphResults(dataset, numDataPoints);
 	  
 	});
+}
+
+//=======================================================
+function graphResults(dataset, numDataPoints){
+
+	// console.log("NUM DATA POINTS")
+	// console.log(numDataPoints)
 
 	//Width and height
-	var w = 500;
-	var h = 300;
+	var w = 600;
+	var h = 400;
 	var padding = 30;
 	
-	//Temperature set
-	var dataset = [];
-	var numDataPoints = 50;	
-	for (var i = 0; i < numDataPoints; i++) {
-		var newNumber1 = iso_date;
-		var newNumber2 = temp;
-		dataset.push([newNumber1, newNumber2]);
-		temp += 1;
-		iso_date += 100;
-	}
 	//Create scale functions
+	lowerX = d3.min(dataset, function(d) { return d[0]; })
+	// console.log(lowerX);
+	upperX = d3.max(dataset, function(d) { return d[0]; })
+	// console.log(upperX);
 	var xScale = d3.scale.linear()
-						 .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+						 .domain([lowerX, upperX])
 						 .range([padding, w - padding * 2]);
+	lowerY = d3.min(dataset, function(d) { return d[1]; })
+	console.log(lowerY);
+	upperY = d3.max(dataset, function(d) { return d[1]; })
+	console.log(upperY);
 	var yScale = d3.scale.linear()
-						 .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+						 .domain([lowerY, upperY])
 						 .range([h - padding, padding]);
 	//Define X axis
 	var xAxis = d3.svg.axis()
@@ -137,19 +140,9 @@ function createFindGraph() {
 	//On click, update with new data			
 	d3.select(".find")
 		.on("click", function() {
-			//New values for dataset
-			var numValues = dataset.length;						 		//Count original length of dataset
-			dataset = []; 												//Initialize empty array
-			for (var i = 0; i < numValues; i++) {				 		//Loop numValues times
-				var newNumber1 = iso_date;
-				var newNumber2 = temp;
-				dataset.push([newNumber1, newNumber2]);
-				temp += 1;
-				iso_date += 100;
-			}
 			
 			//Update scale domains
-			xScale.domain([0, d3.max(dataset, function(d) { return d[0]; })]);
+			xScale.domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })]);
 			yScale.domain([0, d3.max(dataset, function(d) { return d[1]; })]);
 			//Update all circles
 			svg.selectAll("circle")
