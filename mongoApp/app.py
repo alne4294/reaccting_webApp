@@ -2,8 +2,10 @@
 
 import pymongo
 from datetime import datetime
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, Response
+from functools import wraps
 import json
+import csv
 from bson import json_util
 import os
 
@@ -15,6 +17,33 @@ app = Flask(__name__)
 
 def format_error(message):
     return jsonify(error=1, data=message)
+
+
+#==========================================================
+#Authentication helpers
+
+def check_auth(username, password):
+    """This function is called to check if a username /
+    password combination is valid."""
+
+    return username == 'reaccting' and password == 'ghana'
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
 
 #==========================================================
 #GET
@@ -100,9 +129,84 @@ def countTotal():
         return format_response(False, "Need a GET request at this endpoint")
 
 
+@app.route('/api/1.0/mongoWebApp/getPhoneData')
+def getPhoneData():
+    # lats = [10.9100667,
+    #   10.872798,
+    #   10.872798,
+    #   10.872798,
+    #   10.9100669,
+    #   10.9100669,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9762573,
+    #   10.9762573,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9224897,
+    #   10.9224897,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9100667,
+    #   10.9762572,
+    #   10.9762572,
+    #   10.9762572,
+    #   10.9762572,
+    #   10.9762571,
+    #   10.872798,
+    #   10.872798,
+    #   10.9762571,
+    #   10.9762571,
+    #   10.9762571]
+
+  # csvfile = open('Phone_1_combined.csv', 'r')
+  # see http://kaira.sgo.fi/2014/05/saving-and-loading-data-in-python-with.html
+  
+  # Open the file for reading
+  jsonFile = open('Phone_1_combined.json', 'r')
+
+  # Load the contents from the file, which creates a new dictionary
+  coordDict = json.load(jsonFile)
+
+  # Close the file... we don't need it anymore  
+  jsonFile.close()
+
+  # Print the contents of our freshly loaded dictionary
+  print coordDict
+
+  # fieldnames = ("FirstName","LastName","IDNumber","Message")
+  # reader = csv.DictReader( csvfile, fieldnames)
+  # for row in reader:
+  #     json.dump(row, jsonfile)
+  #     jsonfile.write('\n')
+
+    return jsonify(results=coordDict)
+
+
+
+@app.route('/animation')
+def animation():
+    return render_template('animation.html')
+
+
 @app.route("/")
+@requires_auth
 def index():
     return render_template('index.html')
+
+
+@app.route("/map")
+def map():
+    return render_template('map.html')
 
 
 if __name__ == '__main__':

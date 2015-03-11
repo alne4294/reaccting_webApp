@@ -116,7 +116,9 @@ function graphResults(dataset, numDataPoints){
 	  .attr('class', 'd3-tip')
 	  .offset([-10, 0])
 	  .html(function(d) {
-	    return "<strong>Date:</strong> <span style='color:red'>" + d[0] + "</span>";
+	    return "<strong>Date: </strong> <span style='color:red'>" + d[0] + "</span>" + 
+	    	"<br>" + "<strong>Temp: </strong>" + "<span style='color:red'>" + d[1] + "<strong> C</strong>" + "</span>" + 
+	    	"<br>" + "<strong>Light: </strong>" + "<span style='color:red'>" + d[2];
 	  })
 
 	//Create SVG element
