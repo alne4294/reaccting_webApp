@@ -29,7 +29,36 @@
   function getPhoneData(){
     d3.json("/api/1.0/mongoWebApp/getPhoneData", function(docs) {
       
-      var lats = docs.results;
+      //docs.data is an array of objects, where each obj is a csv row
+      var dataObjs = (docs.data);
+      // console.log(dataObjs);
+
+      var numRecords = dataObjs.length;
+      var lats  = [];
+      var longs = [];
+
+      for (var i = 0; i < numRecords; i++){
+        var record = dataObjs[i];
+        var lat = Number(record.lat);
+        var lon = Number(record.lon)
+
+        //Check that our coordinates are numerical and within the acceptable area
+        if(!isNaN(lat) && lat<11.109684643110414 && lat>10.478359299402134){
+          if(!isNaN(lon) && lon<-0.693511962890625 && lon>-1.41998291015625){
+            lats.push(lat);
+            longs.push(lon);
+          }
+        }
+      }
+
+      console.log("Started with: " + numRecords + " records");
+      console.log(lats.length + " were permissable")
+
+      // var lats = jQuery.parseJSON(docs.data);
+      // console.log("LATS");
+      // console.log(lats);
+
+      // var lats = docs.data;
       
       // var lats = jQuery.parseJSON(docs.data);
 
@@ -41,12 +70,12 @@
       // console.log(light);
 
       //Call from here to avoid asynchronous behavior
-      animatePhoneData(lats);
+      animatePhoneData(lats, longs);
 
     });
   }
 
-  function animatePhoneData(lats){
+  function animatePhoneData(lats, longs){
     L.mapbox.accessToken = 'pk.eyJ1IjoiYWxuZTQyOTQiLCJhIjoiZERWYV8yZyJ9.9Dp7x2OGFrLO6ZIunDSHyQ';
     // var map = L.mapbox.map('map', 'alne4294.l9ebdngb').setView([10.884722, -1.090278], 3);
     var map = L.mapbox.map('map', 'alne4294.l9ebdngb').setView([10.9100667, -1.0007569], 12);
@@ -75,42 +104,42 @@
 
     // var fullData = $.csv.toObjects(Phone_1_combined.csv);
 
-    var longs = [-1.085039,
-    -1.0782216,
-    -1.0782216,
-    -1.0782216,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.0007569,
-    -1.0007569,
-    -1.085039,
-    -1.085039,
-    -1.0873115,
-    -1.0873115,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.085039,
-    -1.0007567,
-    -1.0007567,
-    -1.0007567,
-    -1.0007567,
-    -1.0007568,
-    -1.0782216,
-    -1.0782216,
-    -1.0007568,
-    -1.0007568,
-    -1.0007568]
+    // var longs = [-1.085039,
+    // -1.0782216,
+    // -1.0782216,
+    // -1.0782216,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.0007569,
+    // -1.0007569,
+    // -1.085039,
+    // -1.085039,
+    // -1.0873115,
+    // -1.0873115,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.085039,
+    // -1.0007567,
+    // -1.0007567,
+    // -1.0007567,
+    // -1.0007567,
+    // -1.0007568,
+    // -1.0782216,
+    // -1.0782216,
+    // -1.0007568,
+    // -1.0007568,
+    // -1.0007568]
 
     console.log(lats);
     console.log(longs);

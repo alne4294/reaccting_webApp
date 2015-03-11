@@ -172,7 +172,7 @@ def getPhoneData():
   # see http://kaira.sgo.fi/2014/05/saving-and-loading-data-in-python-with.html
   
   # Open the file for reading
-  jsonFile = open('Phone_1_combined.json', 'r')
+  jsonFile = open('Phone1.json', 'r')
 
   # Load the contents from the file, which creates a new dictionary
   coordDict = json.load(jsonFile)
@@ -181,7 +181,7 @@ def getPhoneData():
   jsonFile.close()
 
   # Print the contents of our freshly loaded dictionary
-  print coordDict
+  #print coordDict
 
   # fieldnames = ("FirstName","LastName","IDNumber","Message")
   # reader = csv.DictReader( csvfile, fieldnames)
@@ -189,7 +189,7 @@ def getPhoneData():
   #     json.dump(row, jsonfile)
   #     jsonfile.write('\n')
 
-    return jsonify(results=coordDict)
+  return jsonify(data=coordDict)
 
 
 
