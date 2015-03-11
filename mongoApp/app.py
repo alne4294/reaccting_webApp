@@ -5,7 +5,6 @@ from datetime import datetime
 from flask import Flask, request, render_template, jsonify, Response
 from functools import wraps
 import json
-import csv
 from bson import json_util
 import os
 
@@ -131,45 +130,6 @@ def countTotal():
 
 @app.route('/api/1.0/mongoWebApp/getPhoneData')
 def getPhoneData():
-    # lats = [10.9100667,
-    #   10.872798,
-    #   10.872798,
-    #   10.872798,
-    #   10.9100669,
-    #   10.9100669,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9762573,
-    #   10.9762573,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9224897,
-    #   10.9224897,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9100667,
-    #   10.9762572,
-    #   10.9762572,
-    #   10.9762572,
-    #   10.9762572,
-    #   10.9762571,
-    #   10.872798,
-    #   10.872798,
-    #   10.9762571,
-    #   10.9762571,
-    #   10.9762571]
-
-  # csvfile = open('Phone_1_combined.csv', 'r')
-  # see http://kaira.sgo.fi/2014/05/saving-and-loading-data-in-python-with.html
   
   # Open the file for reading
   jsonFile = open('Phone1.json', 'r')
@@ -179,15 +139,6 @@ def getPhoneData():
 
   # Close the file... we don't need it anymore  
   jsonFile.close()
-
-  # Print the contents of our freshly loaded dictionary
-  #print coordDict
-
-  # fieldnames = ("FirstName","LastName","IDNumber","Message")
-  # reader = csv.DictReader( csvfile, fieldnames)
-  # for row in reader:
-  #     json.dump(row, jsonfile)
-  #     jsonfile.write('\n')
 
   return jsonify(data=coordDict)
 
