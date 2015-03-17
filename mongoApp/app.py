@@ -1,7 +1,7 @@
 #Handles REST requests for accessing REACCTING data in MongoDB
 
 import pymongo
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, request, render_template, jsonify, Response
 from functools import wraps
 import json
@@ -128,17 +128,28 @@ def countTotal():
         return format_response(False, "Need a GET request at this endpoint")
 
 
-@app.route('/api/1.0/mongoWebApp/getPhoneData')
-def getPhoneData():
+@app.route('/api/1.0/mongoWebApp/getPhoneData/<int:phoneNum>')
+def getPhoneData(phoneNum):
   
+  if(phoneNum < 1 or phoneNum > 2):
+    # Return empty dictionary
+    return jsonify(data={})
+  
+
   # Open the file for reading
-  jsonFile = open('Phone1.json', 'r')
+  jsonFile = open('Phone'+str(phoneNum)+'.json', 'r')
 
   # Load the contents from the file, which creates a new dictionary
   coordDict = json.load(jsonFile)
 
   # Close the file... we don't need it anymore  
   jsonFile.close()
+
+  # Convert Matlab time into Gregorian time string
+  for doc in coordDict:
+    matlab_datenum = float(doc["time"])
+    python_datetime = datetime.fromordinal(int(matlab_datenum)) + timedelta(days=matlab_datenum%1) - timedelta(days = 366)
+    doc["time"] = str(python_datetime)
 
   return jsonify(data=coordDict)
 

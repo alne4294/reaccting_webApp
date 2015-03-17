@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<meta charset=utf-8 />
+<title>Phone GPS</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<style>
+  body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+  }
+  #map { 
+      position:absolute; 
+      top:0; 
+      bottom:0; 
+      height: 100%;
+      width:100%; 
+  }
+
+  svg {
+      position: relative;
+  }
+  path {
+      fill: none;
+      stroke-width: 4px;
+  }
+  path.true {
+      stroke:#3366FF;
+  }
+  path.false {
+      stroke:#990099;
+  }
+  circle {
+      fill: yellow;
+  }
+  #timebox {
+      position:absolute;
+      height:200px;
+      width:300px;
+      top:0;
+      left:0;
+      z-index:10;
+      background:#000;
+      color:white;
+      margin:30px;
+      padding:30px;
+  }
+  .areaChart {
+      position: absolute;
+      bottom: 0;
+      background: #000;
+  }
+  .axis path,
+  .axis line {
+        fill: none;
+        stroke: #FFF;
+        shape-rendering: crispEdges;
+        stroke-width:1;
+  }
+  .axis text {
+    stroke:white;
+  }
+  .area {
+    fill: #3366FF;
+  }
+  .empty {
+      fill: #990099;
+  }
+</style>
+
+
+<script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
+<script src='static/bower_components/d3/d3.min.js'></script>
+<script src='static/bower_components/jquery/dist/jquery.min.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+
+<div id='map'></div>
+
+<script>
+
+  // custom javascript
+  $(function() {
+    var phoneNum = 2;
+    console.log('About to animate :)');
+    getPhoneData(phoneNum);
+  });
+
+
+  function getPhoneData(phoneNum){
+    d3.json("/api/1.0/mongoWebApp/getPhoneData/"+phoneNum, function(docs) {
+      
+      //docs.data is an array of objects, where each obj is a csv row
+      var dataObjs = (docs.data);
+      // console.log(typeof(dataObjs));
+
+      var numRecords = dataObjs.length;
+      var lats  = [];
+      var longs = [];
+      var records = [];
+
+      for (var i = 0; i < numRecords; i++){
+        var record = dataObjs[i];
+        if (i<5){
+          console.log("RECORD");
+          console.log(record);
+        }
+        var lat = Number(record.lat);
+        var lon = Number(record.lon)
+
+        //Check that our coordinates are numerical and within the acceptable area
+        if(!isNaN(lat) && lat<11.109684643110414 && lat>10.478359299402134){
+          if(!isNaN(lon) && lon<-0.693511962890625 && lon>-1.41998291015625){
+            records.push(record);
+          }
+        }
+      }
+
+      console.log("Started with: " + numRecords + " records");
+      console.log(records.length + " were permissable")
+
+      //Call from here to avoid asynchronous behavior
+      animatePhoneData(records);
+
+    });
+  }
+
+  function animatePhoneData(records){
+
+    L.mapbox.accessToken = 'pk.eyJ1IjoiYWxuZTQyOTQiLCJhIjoiZERWYV8yZyJ9.9Dp7x2OGFrLO6ZIunDSHyQ';
+    var map = L.mapbox.map('map', 'alne4294.l9ebdngb').setView([10.9100667, -1.0007569], 12);
+
+    // add an OpenStreetMap tile layer
+    // L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    //     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    // }).addTo(map);
+
+    // Generate a GeoJSON line. You could also load GeoJSON via AJAX
+    // or generate it some other way.
+    var geojson = { type: 'LineString', coordinates: [] };
+
+    // console.log(records);
+
+    var start = [0,0];
+    var momentum = [.001, .001];
+    var pace = 30; //Higher number is a slower pace
+
+    for (var i = 0; i < records.length; i++){
+
+      //Push the start of the line, then start moving towards the next point
+      start[0] = records[i].lat;
+      start[1] = records[i].lon;
+
+      geojson.coordinates.push(start.slice());
+     
+      var latMom  = Math.abs(records[i+1].lat  - records[i].lat)/pace;
+      var longMom = Math.abs(records[i+1].lon - records[i].lon)/pace;
+      momentum = [latMom, longMom];
+
+      console.log("Made it here");
+      console.log(records[i]);
+      //The direction of the momentum depends on the direction that we're going
+      //Note: since we've scaled the momentum for N/S and E/W, we only need to check
+      //one of them to determine if we've reached our destination
+
+      //NORTHEAST
+      if(records[i].lat <= records[i+1].lat && records[i].lon <= records[i+1].lon){
+        while(start[0] < records[i+1].lat){
+          // Use the momentum to smooth transitions
+          start[0] += momentum[0];
+          start[1] += momentum[1];
+          geojson.coordinates.push(start.slice());
+        } 
+      }
+
+      //NORTHWEST
+      else if(records[i].lat <= records[i+1].lat && records[i].lon >= records[i+1].lon){
+        while(start[0] < records[i+1].lat){
+          // Use the momentum to smooth transitions
+          start[0] += momentum[0];
+          start[1] -= momentum[1];
+          geojson.coordinates.push(start.slice());
+        } 
+      }
+
+      //SOUTHEAST
+      else if(records[i].lat >= records[i+1].lat && records[i].lon <= records[i+1].lon){
+        while(start[0] > records[i+1].lat){
+          // Use the momentum to smooth transitions
+          start[0] -= momentum[0];
+          start[1] += momentum[1];
+          geojson.coordinates.push(start.slice());
+        } 
+      }
+
+      //SOUTHWEST
+      else if(records[i].lat >= records[i+1].lat && records[i].lon >= records[i+1].lon){
+        while(start[0] > records[i+1].lat){
+          // Use the momentum to smooth transitions
+          start[0] -= momentum[0];
+          start[1] -= momentum[1];
+          geojson.coordinates.push(start.slice());
+        } 
+      }
+
+    }
+
+    console.log(geojson);
+
+    // Add this generated geojson object to the map.
+    L.geoJson(geojson).addTo(map);
+
+    // Create a counter with a value of 0.
+    var j = 0;
+
+    // Create a marker and add it to the map.
+    var marker = L.marker([0, 0], {
+      icon: L.mapbox.marker.icon({
+        'marker-color': '#f86767'
+      })
+    }).addTo(map);
+
+    tick();
+    function tick() {
+        // Set the marker to be at the same point as one
+        // of the segments or the line.
+        marker.setLatLng(L.latLng(
+            geojson.coordinates[j][0],
+            geojson.coordinates[j][1]));
+
+        // Move to the next point of the line
+        // until `j` reaches the length of the array.
+        if (++j < geojson.coordinates.length) setTimeout(tick, 100);
+    }
+  }
+</script>
+
+
+</html>

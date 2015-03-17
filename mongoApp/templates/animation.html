@@ -1,43 +1,112 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset=utf-8 />
-  <title>Phone 1 GPS</title>
-  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
-  <script src='static/bower_components/d3/d3.min.js'></script>
-  <script src='static/bower_components/jquery/dist/jquery.min.js'></script>
-  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
-  <style>
-    body { margin:0; padding:0; }
-    #map { position:absolute; top:0; bottom:0; width:100%; }
-  </style>
-</head>
-<body>
+<meta charset=utf-8 />
+<title>Phone GPS</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<style>
+  body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+  }
+  #map { 
+      position:absolute; 
+      top:0; 
+      bottom:0; 
+      height: 100%;
+      width:100%; 
+  }
+
+  svg {
+      position: relative;
+  }
+  path {
+      fill: none;
+      stroke-width: 4px;
+  }
+  path.true {
+      stroke:#3366FF;
+  }
+  path.false {
+      stroke:#990099;
+  }
+  circle {
+      fill: yellow;
+  }
+  #timebox {
+      position:absolute;
+      height:200px;
+      width:300px;
+      top:0;
+      left:0;
+      z-index:10;
+      background:#000;
+      color:white;
+      margin:30px;
+      padding:30px;
+  }
+  .areaChart {
+      position: absolute;
+      bottom: 0;
+      background: #000;
+  }
+  .axis path,
+  .axis line {
+        fill: none;
+        stroke: #FFF;
+        shape-rendering: crispEdges;
+        stroke-width:1;
+  }
+  .axis text {
+    stroke:white;
+  }
+  .area {
+    fill: #3366FF;
+  }
+  .empty {
+      fill: #990099;
+  }
+</style>
+
+
+<script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
+<script src='static/bower_components/d3/d3.min.js'></script>
+<script src='static/bower_components/jquery/dist/jquery.min.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+
 <div id='map'></div>
+
+
 
 <script>
 
   // custom javascript
   $(function() {
+    var phoneNum = 2;
     console.log('About to animate :)');
-    getPhoneData();
+    getPhoneData(phoneNum);
   });
 
 
-  function getPhoneData(){
-    d3.json("/api/1.0/mongoWebApp/getPhoneData", function(docs) {
+  function getPhoneData(phoneNum){
+    d3.json("/api/1.0/mongoWebApp/getPhoneData/"+phoneNum, function(docs) {
       
       //docs.data is an array of objects, where each obj is a csv row
       var dataObjs = (docs.data);
-      // console.log(dataObjs);
+      // console.log(typeof(dataObjs));
 
       var numRecords = dataObjs.length;
       var lats  = [];
       var longs = [];
+      var records = [];
 
       for (var i = 0; i < numRecords; i++){
         var record = dataObjs[i];
+        if (i<5){
+          console.log("RECORD");
+          console.log(record);
+        }
         var lat = Number(record.lat);
         var lon = Number(record.lon)
 
@@ -46,6 +115,7 @@
           if(!isNaN(lon) && lon<-0.693511962890625 && lon>-1.41998291015625){
             lats.push(lat);
             longs.push(lon);
+            records.push(record);
           }
         }
       }
@@ -54,12 +124,12 @@
       console.log(lats.length + " were permissable")
 
       //Call from here to avoid asynchronous behavior
-      animatePhoneData(lats, longs);
+      animatePhoneData(lats, longs, records);
 
     });
   }
 
-  function animatePhoneData(lats, longs){
+  function animatePhoneData(lats, longs, records){
 
     L.mapbox.accessToken = 'pk.eyJ1IjoiYWxuZTQyOTQiLCJhIjoiZERWYV8yZyJ9.9Dp7x2OGFrLO6ZIunDSHyQ';
     var map = L.mapbox.map('map', 'alne4294.l9ebdngb').setView([10.9100667, -1.0007569], 12);
@@ -167,5 +237,6 @@
     }
   }
 </script>
-</body>
+
+
 </html>
