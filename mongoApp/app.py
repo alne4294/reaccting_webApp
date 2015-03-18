@@ -149,7 +149,8 @@ def getPhoneData(phoneNum):
   for doc in coordDict:
     matlab_datenum = float(doc["time"])
     python_datetime = datetime.fromordinal(int(matlab_datenum)) + timedelta(days=matlab_datenum%1) - timedelta(days = 366)
-    doc["time"] = str(python_datetime)
+    #Convert to string and remove units smaller than seconds
+    doc["time"] = (str(python_datetime)).split('.', 1)[0]
 
   return jsonify(data=coordDict)
 
