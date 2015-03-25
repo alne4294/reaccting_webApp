@@ -145,12 +145,25 @@ def getPhoneData(phoneNum):
   # Close the file... we don't need it anymore  
   jsonFile.close()
 
+  week   = ['Sunday', 
+          'Monday', 
+          'Tuesday', 
+          'Wednesday', 
+          'Thursday',  
+          'Friday', 
+          'Saturday']
+
   # Convert Matlab time into Gregorian time string
   for doc in coordDict:
+    temp = doc["time"];
     matlab_datenum = float(doc["time"])
     python_datetime = datetime.fromordinal(int(matlab_datenum)) + timedelta(days=matlab_datenum%1) - timedelta(days = 366)
     #Convert to string and remove units smaller than seconds
-    doc["time"] = (str(python_datetime)).split('.', 1)[0]
+    weekday = python_datetime.weekday()
+    dateAndTime = (str(python_datetime)).split('.', 1)[0]
+    doc["date"], doc["time"] = dateAndTime.split(' ', 1)
+    doc["date"] = week[weekday] + ", " + doc["date"]
+    # print temp + " " + doc["date"] + " - " + doc["time"]
 
   return jsonify(data=coordDict)
 

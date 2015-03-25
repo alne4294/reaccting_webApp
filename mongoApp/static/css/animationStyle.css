@@ -14,15 +14,26 @@ html,
       width:100%; 
   }
 
+  div.slider { width:600px; margin:10px 0; background-color:#ccc; height:10px; position: relative; }
+  div.slider div.handle { width:10px; height:20px; background-color:#00CCFF; cursor:move; position: absolute; }
+
   svg {
       position: relative;
   }
 
   .dateTimeBox {
       position: absolute;
-      top: 65px;
-      left: 15px;
-      width: 350px;  
+      top: 90px;
+      left: 40px;
+      width: 220px;  
+  }
+
+  .dateTimeSlider {
+      position: absolute;
+      top: 10px;
+      left: 40px;
+      height: 75px;
+      width: 620px;
   }
 
   .areaChart {
@@ -30,6 +41,7 @@ html,
       bottom: 0;
       background: #000;
   }
+
   .axis path,
   .axis line {
         fill: none;
@@ -55,6 +67,9 @@ html,
     position: relative;
     top: -5px;
   }
+  .date {
+    font-size: 18px;
+  }
 
   .leaflet-popup-content {
     font: 12px/1.4 "Helvetica Neue", Arial, Helvetica, sans-serif;
@@ -64,4 +79,12 @@ html,
   .awesome-marker i {
         font-size: 25px;
         margin-top: 8px;
+  }
+
+  .fa-stop {
+    color: red;
+  }
+
+  .fa-play {
+    color: green;
   }
